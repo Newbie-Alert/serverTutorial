@@ -47,9 +47,19 @@
       <div class="list_card">
         <h3>할 일: <%= el.title %></h3>
         <h4>날짜: <%= el.date %></h4>
+        <button class="card-button_<%= i %>">완료</button>
       </div>
       <% }) %>
     </div>
+
+    <script src="http://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script>
+      $.ajax({
+        method: "DELETE",
+        url: "/delete",
+        data: { _id: 1 },
+      });
+    </script>
     <script
       src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
       integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"

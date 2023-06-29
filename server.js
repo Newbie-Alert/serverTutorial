@@ -46,12 +46,19 @@ MongoClient.connect('mongodb+srv://choonsik:asdf1234@cluster0.tpprxr9.mongodb.ne
   // DB데이터 가져와 EJS로 보내주기, 유저에게 EJS 보내주기
   app.get('/list', function (req, res) {
     db.collection('post').find().toArray(function (err, result) {
-      console.log(result);
       res.render('list.ejs', { posts: result });
     });
+  })
 
+  app.delete('/delete', function (req, res) {
+    req.body._id = parseInt(req.body._id)
+    db.collection('post').deleteOne(req.body, function (err, result) {
+      console.log(result);
+    })
   })
 })
+
+
 
 app.get('/', function (req, res) {
   res.sendFile(__dirname + '/index.html')

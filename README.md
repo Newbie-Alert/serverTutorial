@@ -79,3 +79,20 @@
 > db.collection('count').updateOne({name:'게시물갯수'},{$inc : {totalPost:1}},function(err, result){
 >
 > })
+
+# 3일 차
+
+## **Ajax**
+
+- Javascript에서 서버와 통신을 할 수 있게 하는 문법
+- 최대 장점은 **새로고침**이 없다는 것
+
+### **Jquery를 이용한 Ajax 기본문법**
+
+> $.ajax({
+> method: "" // PUT, DELETE.. 등의 요청 형태  
+>  url: "" // 서버의 주소  
+>  data: {} // 담아서 보낼 데이터  
+> }).done(function(result) {  
+>  ~요청이 성공한 후 실행할 코드~  
+> })
