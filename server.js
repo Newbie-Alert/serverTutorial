@@ -1,6 +1,10 @@
 const express = require('express');
 const path = require('path');
 const app = express();
+const methodOverride = require('method-override');
+
+// method-override_html에서도 put/delete 요청이 가능하게 함
+app.use(methodOverride('_method'));
 // EJS 등록
 app.set('view engine', 'ejs');
 
@@ -9,7 +13,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // PUBLIC 폴더 이용 (미들웨어: 요청과 응답 사이에 응답하는 코드)
 app.use(express.static(path.join(__dirname, "/public")));
-// 또는 app.use("/public", express.static('public'));
+// app.use("/public", express.static('public'));
 
 // db변수
 let db;
@@ -62,13 +66,27 @@ MongoClient.connect('mongodb+srv://choonsik:asdf1234@cluster0.tpprxr9.mongodb.ne
       res.status(200).send({ message: '삭제 완료' });
     })
   })
-})
 
-app.get('/detail/:id', function (req, res) {
-  db.collection('post').findOne({ _id: parseInt(req.params.id) }, function (err, result) {
-    res.render('detail.ejs', { data: result })
+  app.get('/detail/:id', function (req, res) {
+    db.collection('post').findOne({ _id: parseInt(req.params.id) }, function (err, result) {
+      res.render('detail.ejs', { data: result })
+    })
+  })
+
+  app.get('/edit/:id', function (req, res) {
+    db.collection('post').findOne({ _id: parseInt(req.params.id) }, function (err, result) {
+      res.render('edit.ejs', { data: result })
+    })
+  })
+
+  app.put('/put', function (req, res) {
+    db.collection('post').updateOne({ _id: parseInt(req.body.id) }, { $set: { title: req.body.title, date: req.body.date } }, function (err, result) {
+      console.log(result.body);
+      res.redirect('/list');
+    })
   })
 })
+
 
 
 app.get('/', function (req, res) {

@@ -1,6 +1,6 @@
 ## Server Tutorial
 
-# 1일 차
+# **1일 차**
 
 ## 서버 구축
 
@@ -10,7 +10,7 @@
 
 - DB에서 데이터 가져와 ejs로 보내주기
 
-# 2일 차
+# **2일 차**
 
 ## 기능 추가
 
@@ -42,50 +42,70 @@
 
 ### 예). HTML의 input에서 title, date 라는 값으로 **POST** 요청을 할 때
 
-> db.collection('post').insertOne({ \_id: total + 1, title: req.body.title, date: req.body.date }, function (err, result) {
-> res.sendFile(\_\_dirname + '/write.html');
-> });
+```javascript
+db.collection('post').insertOne({ \_id: total + 1, title: req.body.title, date: req.body.date }, function (err, result) {
+res.sendFile(\_\_dirname + '/write.html');
+});
+```
 
 ## **2. DB의 특정 조건을 가진 데이터 하나를 찾아서 가져올 때**
 
 - ## 형태
 
+```javascript
   db.collection(컬렉션 이름:String).findOne({찾을 데이터의 값}, function (err, result) {})
+```
 
 ### 예). DB의 count라는 컬렉션에서 데이터 중 이름이 '게시물갯수' 인 값 하나를 찾는 것
 
-> db.collection('count').findOne({ name: '게시물갯수' }, function (err, result) {})
+```javascript
+db.collection("count").findOne(
+  { name: "게시물갯수" },
+  function (err, result) {}
+);
+```
 
 ## **3. DB의 컬렉션의 모든 데이터를 array 형태로 가져오는 것**
 
 - ## 형태
 
+```javascript
   db.collection(컬렉션 이름:String).find().toArray(function (err, result) {
   }
+```
 
 ### 예). DB의 post라는 컬렉션의 모든 값을 가져올 때
 
-> db.collection('post').find().toArray(function (err, result) {
-> }
+```javascript
+db.collection('post').find().toArray(function (err, result) {
+}
+```
 
 ## **4. DB의 특정 데이터의 값을 UPDATE 할 때**
 
 - ## 형태
 
+```javascript
   db.collection(컬렉션 이름:String).updateOne({ 찾는 데이터 }, { Operator :{어떻게 수정할지} }, function(err, result) {
   })
+```
 
-- ## Update Operator의 종류
+## **Update Operator의 종류**
+
 - {$set: {데이터: 바꿀 값}}
 - {$inc: {데이터: 기존값에 더해줄 값}} 등.. 다양한 Operator가 있다
 
 ### 예). DB의 count라는 컬렉션의 **name: '게시물갯수'** 인 데이터를 찾아 **totalPost의 값을 +1 하는 것**
 
-> db.collection('count').updateOne({name:'게시물갯수'},{$inc : {totalPost:1}},function(err, result){
->
-> })
+```javascript
+db.collection("count").updateOne(
+  { name: "게시물갯수" },
+  { $inc: { totalPost: 1 } },
+  function (err, result) {}
+);
+```
 
-# 3일 차
+# **3일 차**
 
 ## 기능 추가
 
@@ -98,20 +118,23 @@
 
 ### **Jquery를 이용한 Ajax 기본문법**
 
-> $.ajax({
-> method: "" // PUT, DELETE.. 등의 요청 형태  
->  url: "" // 서버의 주소  
->  data: {} // 담아서 보낼 데이터  
-> }).done(function(result) {  
->  ~요청이 성공한 후 실행할 코드~  
-> })
+```javascript
+ $.ajax({
+ method: "" // PUT, DELETE.. 등의 요청 형태
+  url: "" // 서버의 주소
+  data: {} // 담아서 보낼 데이터
+ }).done(function(result) {
+  ~요청이 성공한 후 실행할 코드~
+ })
+```
 
-# 4일 차
+# **4일 차**
 
 ## 기능 추가
 
 - url Parameter를 이용하여 detail page 제작
 - detail Page에 할 일 완료 기능 추가
+- 할 일 수정 기능 추가
 
 ## **URL Parameter**
 
@@ -120,10 +143,13 @@
 
 ### 형태
 
-> app.get('/detail/**:id**(url_parameter)', function(req, res) {
-> db.collection('post').findOne({\_id:**req.params.url_parameter**}, function(err, result){
-> })  
-> })
+```javascript
+ app.get('/detail/**:id**(url_parameter)', function(req, res) {
+ db.collection('post').findOne({\_id:**req.params.url_parameter**}, function(err, result){
+
+ })
+})
+```
 
 ## **ejs를 통한 조립식 개발**
 
@@ -134,3 +160,45 @@ ejs에 다른 html을 component 형태로 가져와 부착시킬 수 있다.
 
 - views 폴더 안에 nav.html을 만들고
 - list.ejs의 원하는 곳에 <%- include('(파일 경로)nav.html') %> 을 작성하면 navbar가 부착됨.
+
+## **PUT 요청**
+
+- 원래는 html에서 put/delete요청은 사용할 수 없지만,  
+  method-override 라이브러리를 사용하여 html의 form에서도 put/delete 요청이 가능해짐.
+- npm install method-override 설치 후  
+  server.js에 아래와 같이 라이브러리를 등록한다.
+  ```javascript
+  const methodOverride = require("method-override");
+  app.use(methodOverride("_method"));
+  ```
+
+### **method-override 사용방법**
+
+- 라이브러리 설치와 server에 등록까지 마쳤다면  
+  form 태그 속 action 속성에 action="/경로?**\_method=PUT**" 의  
+  형태로 사용된다
+- **단 기존의 method 속성은 POST로 해야한다.**
+
+예) 어떠한 form 태그에서 **PUT 요청**을 '/put' 경로로 하는 때
+
+```javascript
+<form action="/put?_method=PUT" method="POST"></form>
+```
+
+- 이후 서버에서는 아래와 같이 요청을 받아 처리한다
+
+예) put요청을 받아 db의 post 컬렉션에서 이러이러한 데이터를 찾아 요청값으로 업데이트 하라는 처리.
+
+```javascript
+app.put('/put', function(req, res) {
+  db.collection('post').updateOne({req.body.id}, {$set:{title:req.body.title, date:req.body.date}}, function(err, result){
+    res.redirect('/list');
+  })
+})
+```
+
+## **요청 처리의 끝에는 서버의 응답이 필수**
+
+- 위의 코드 끝에 **`res.redirect('/list');`** 위의 요청 처리 후  
+  유저에게 보내는 응답인데 **/list 페이지를 다시 보내주세요** 라는 뜻이다.
+  ### **응답을 작성하지 않으면 페이지는 멈춰버린다**
