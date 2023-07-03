@@ -12,7 +12,11 @@
 
 # 2일 차
 
-## 1. Auto Increment 기능 추가
+## 기능 추가
+
+- Auto Increment 기능 추가
+
+## **Auto Increment ?**
 
 - **Data를 구분하기 위해** DB에 저장되는 값에 **고유 ID**를 부여하는 것
 - 글 번호를 자동으로 지정해주는 기능인데 Mongo DB에는 이 기능이 없어서 데이터의 ID 값을 **총 게시물+1** 로 부여해주는 기능을 만들어봤다.
@@ -22,7 +26,8 @@
 > ID를 **총 게시물+1** 로 부여한다면  
 > 데이터가 저장되는 시점에 따라 혼선이 생겨서 수정하면 엄청 꼬였다.  
 > 그렇기에 데이터의 고유 ID는 수정이 되더라도 영구적으로 남아있는 ID를 부여했다.  
-> 한번 부여된 고유ID는 삭제가 되더라도 영원히 그 ID를 가지고 있게 만드는 것이다.
+> **총 게시물의 갯수를 관리해주는 컬렉션을 따로 만들어 ID를 관리하게 함**  
+> 따라서 한번 부여된 고유ID는 삭제가 되더라도 영원히 그 ID를 가지고 있게 만드는 것이다.
 
 ## 2. 데이터를 저장할 때의 좋은 관습
 
@@ -82,6 +87,10 @@
 
 # 3일 차
 
+## 기능 추가
+
+- list 페이지에서 할 일 완료 기능 추가
+
 ## **Ajax**
 
 - Javascript에서 서버와 통신을 할 수 있게 하는 문법
@@ -96,3 +105,32 @@
 > }).done(function(result) {  
 >  ~요청이 성공한 후 실행할 코드~  
 > })
+
+# 4일 차
+
+## 기능 추가
+
+- url Parameter를 이용하여 detail page 제작
+- detail Page에 할 일 완료 기능 추가
+
+## **URL Parameter**
+
+외형은 같은 구조지만 데이터는 다른 페이지를 요청할 때 추가해 보내는 인자.
+예). detail/1, detail/2
+
+### 형태
+
+> app.get('/detail/**:id**(url_parameter)', function(req, res) {
+> db.collection('post').findOne({\_id:**req.params.url_parameter**}, function(err, result){
+> })  
+> })
+
+## **ejs를 통한 조립식 개발**
+
+ejs에 다른 html을 component 형태로 가져와 부착시킬 수 있다.  
+다양한 component를 짧은 코드로 부착시킬 수 있다는 장점이 있음.
+
+### 예) navbar를 하나의 component로 하여 list.ejs에 부착시킨다면
+
+- views 폴더 안에 nav.html을 만들고
+- list.ejs의 원하는 곳에 <%- include('(파일 경로)nav.html') %> 을 작성하면 navbar가 부착됨.

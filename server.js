@@ -7,8 +7,9 @@ app.set('view engine', 'ejs');
 // body-parser (POST요청으로 데이터를 전송하고 싶다면 필요)
 app.use(express.urlencoded({ extended: true }));
 
-// PUBLIC 폴더 이용
-app.use(express.static(path.join(__dirname, "public")));
+// PUBLIC 폴더 이용 (미들웨어: 요청과 응답 사이에 응답하는 코드)
+app.use(express.static(path.join(__dirname, "/public")));
+// 또는 app.use("/public", express.static('public'));
 
 // db변수
 let db;
@@ -51,13 +52,23 @@ MongoClient.connect('mongodb+srv://choonsik:asdf1234@cluster0.tpprxr9.mongodb.ne
   })
 
   app.delete('/delete', function (req, res) {
+    // 서버와 데이터를 주고 받을 때는 문자열로 주고 받기 때문에 요청값을 확인하고 정확한 포맷으로 보내줘야한다.
     req.body._id = parseInt(req.body._id)
+    db.collection('count').updateOne({ name: '게시물갯수' }, { $inc: { totalPost: -1 } }, function (err, result) {
+      console.log('삭제완료~');
+    })
     db.collection('post').deleteOne(req.body, function (err, result) {
-      console.log(result);
+      console.log('삭제 완료');
+      res.status(200).send({ message: '삭제 완료' });
     })
   })
 })
 
+app.get('/detail/:id', function (req, res) {
+  db.collection('post').findOne({ _id: parseInt(req.params.id) }, function (err, result) {
+    res.render('detail.ejs', { data: result })
+  })
+})
 
 
 app.get('/', function (req, res) {
