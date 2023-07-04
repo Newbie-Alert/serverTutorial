@@ -177,7 +177,7 @@ ejs에 다른 html을 component 형태로 가져와 부착시킬 수 있다.
 - 라이브러리 설치와 server에 등록까지 마쳤다면  
   form 태그 속 action 속성에 action="/경로?**\_method=PUT**" 의  
   형태로 사용된다
-- **단 기존의 method 속성은 POST로 해야한다.**
+- **단 method 속성은 POST로 해야한다.**
 
 예) 어떠한 form 태그에서 **PUT 요청**을 '/put' 경로로 하는 때
 
