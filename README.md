@@ -202,3 +202,178 @@ app.put('/put', function(req, res) {
 - 위의 코드 끝에 **`res.redirect('/list');`** 위의 요청 처리 후  
   유저에게 보내는 응답인데 **/list 페이지를 다시 보내주세요** 라는 뜻이다.
   ### **응답을 작성하지 않으면 페이지는 멈춰버린다**
+
+# **5일차**
+
+## 기능 추가
+
+- 로그인 기능
+- session authentication 인증 사용
+- passport 라이브러리를 통한 local 방식으로 로그인 정보 검증
+
+  <br/>
+
+# 학습 내용
+
+## 먼저 회원정보 인증 방식들에 대하여 짧게 학습하였다
+
+## **1. session-based-authentication**
+
+- 로그인 할 시, 서버가 Cookie(브라우저에 저장하는 긴 문자열)를 발행
+- cookie에는 유저의 session id가 저장되어 있고, 브라우저는 쿠키를 저장해놓음 (로그인 상태 저장)
+- 로그인 이후 서버에 **특정 기능(로그인을 해야 이용할 수 있는 기능)을** 요청하면  
+  그 요청 속에 유저의 session 정보를 같이 서버에 보낸다.
+- 브라우저는 요청한 유저의 session을 검사 후 요청을 처리함.
+
+## 특징
+
+- 유저들의 로그인 상태를 저장해놓는 것이 특징
+
+  <br/>
+
+## **2. JWT Authentication (JSON WEB TOKEN)**
+
+- 유저가 올바른 정보로 로그인을 하면 서버가 브라우저에게 토큰(암호화 된 긴 문자열)을 발행.
+- 로그인 이후 서버에 **특정 기능(로그인을 해야 이용할 수 있는 기능)을** 요청하면  
+  요청 데이터 속 header에 토큰 정보를 같이 서버에 보낸다.
+- 서버는 웹 토큰을 검사 후 통과하면 요청을 처리해줌
+
+## 특징
+
+- 유저들의 로그인 상태를 저장하지 않는 것이 특징 (유통기한이 있는 열쇠를 발급하는 것)
+
+  <br/>
+
+## **3. OAuth**
+
+- 구글이나 카카오 같은 곳에 유저의 정보를 요청하고 유저가 동의하면 서버로 유저의 정보 전달
+- 서버가 정보를 받아서 session을 만들던가, token을 발행해주거나 해서 처리
+
+## 특징
+
+- 아주 간편하지만, 몇몇 사이트는 갑자기 **OAuth 로그인 방식이 사라지는 경우가 있다**
+
+  <br/>
+
+# **인증 세팅**
+
+강의는 session 검증 방식으로 진행했기 때문에 session 검증방식으로 진행하였다.
+
+## 1. 먼저 터미널을 열어 아래와 같이 3개의 라이브러리 설치 명령어를 입력 후 설치한다.
+
+> npm i passport passport-local express-session
+
+  <br/>
+## 2. 설치 후 server.js 의 상단에 라이브러리를 가져온다.
+
+```javascript
+const passport = require("passport");
+const localStrategy = require("passport-local").Strategy;
+const session = require("express-session");
+```
+
+<br/>
+
+## 3. 요청을 처리할 API를 작성 후 콜백함수 전에 passport의 local 방식 검증 미들웨어를 끼워준다.
+
+```javascript
+  //============
+  // 로그인 기능
+  //============
+
+  // local방식의 회원 정보 검사
+  app.post('/login', passport.authenticate('local', {
+    failureRedirect: '/fail' // failureRediret: 로그인 실패 시 응답 => /fail로 보내주시오~
+    }), function (req, res) {
+    res.redirect('/') // 정보 검증이 끝난 후 로그인 요청이 처리되면 // 메인페이지('/')로 보내주시오~
+  })
+})
+```
+
+<br/>
+
+## 4. 미들웨어인 passport를 설정해준다
+
+```javascript
+// 1. localstrategy 방식의 검사 - 이것이 완료되면 session에 정보 생성
+passport.use(
+  new localStrategy(
+    {
+      usernameField: "id", // 요청에 담겨오는 form의 input 속 name 속성 참조
+      passwordField: "pw", // 요청에 담겨오는 form의 input 속 name 속성 참조
+      session: true, // 로그인 정보를 세션에 저장할 것인지에 대한 속성
+      passReqToCallback: false, // id,pw 외 다른 정보도 검사 할 것인지에 대한 속성
+    },
+```
+
+<br/>
+
+## **5. 핵심코드\_검증 단계 설정** 🤙
+
+```javascript
+    // 1. 본격적인 검사
+    // 사용자의 정보 검증 함수
+
+    // 먼저 4번의 속성들 중 usernameField 속성, passwordField 속성, done함수를 인자로 갖는다.
+    function (id, pw, done) { // id-usernameField, pw-passwordField,
+    // done이라는 함수는 (서버에러, 성공 시 사용자의 DB데이터, 실패 시 에러메세지)를 인자로 갖는다.
+
+      // 1. DB에서 유저가 입력한 id와 같은 데이터가 있으면 가져온다
+      db.collection("login").findOne({ id: id }, function (err, result) {
+        // 1-1. 에러 처리
+        if (err) return done(err);
+
+        // 1-2.결과에 입력 id와 일치하는 것이 없을 때
+        if (!result)
+          return done(null, false, { message: "존재하지 않는 아이디요" });
+
+        // 1-3. id인증 통과 후
+        // DB에서 찾은 데이터에서 pw도 확인
+        if (pw == result.pw) { // !! 원래 비밀번호은 암호화 해서 검사해야 한다 !!
+          return done(null, result); // 성공 시 result 값은 serializeUser 콜백함수의 첫 인자로 들어감
+        } else {
+          return done(null, false, { message: "비밀번호 틀렸어요" });
+        }
+      });
+    }
+  )
+);
+
+
+// session 데이터를 만들고 유저 정보를 쿠키로 보냄__쿠키 생성
+// session에 저장하는 코드__로그인 시 발동
+passport.serializeUser(function (user, done) {
+  done(null, user.id); // user.id라는 이름으로 session 생성
+});
+
+// 요청하는 사람의 session 정보를 가진 사람을 DB에서 찾아달라는 코드__로그인 후 발동
+//serailizeUser의 user.id 와 이 콜백함수의 id는 같다
+passport.deserializeUser(function (id, done) {
+  db.collection("login").findOne({ id: id }, function (err, result) {
+    done(null, result);
+  });
+});
+```
+
+<br/>
+
+# 느낀 점
+
+리액트랑 서버랑 연동하는 것도 살짝 어리벙벙 하고 처음에는 너무 막막했다.  
+`html` 로 진행 할 때는 `ejs` 같은 편리한 것이 있었는데  
+리액트는 `axios`, `uesEffect` 등을 많이 활용하는 기회가 되었다....  
+로그인과 회원인증 방식에 대한 학습은 사실 2일이 걸렸다.  
+선생님이 원래 원리나 꼭 알아야 할 것은 알려주는데 로그인, 회원인증 강의에서는  
+회원가입은 지금 알려줘도 이해 안 된다, 깊게 안 하고 딱 필요한 정도만 알려준다고 하고 강의를 진행했다..  
+<br/>
+
+# **고난과 역경** 😫
+
+## **오늘 리액트 포트폴리오에 로그인 기능을 적용하는 중...**
+
+로그인까지는 코드를 충분히 숙지하고 흐름을 파악하여 순조롭게 진행하였고,  
+로그인/로그아웃 UI를 변경할 때 서버에서 가져온 데이터로 state를 변경하는 방법을 찾는데  
+정말 오래 걸렸다. 처음엔 Cookie를 참조에서 값의 유무에 따라 UI state를 변경할까 했는데  
+Cookie는 따로 공부를 해야할 거 같았다. 한 2시간 붙들고 있었는데 도무지 이해가 안 됐기 때문이다.  
+결국은 DB에 state 관리를 위한 컬렉션도 새로 만들어서 로그인 상태가 변할 때마다 그 값을 참조하여  
+State를 변경하도록 하였다!!!!

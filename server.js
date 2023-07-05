@@ -97,7 +97,9 @@ MongoClient.connect('mongodb+srv://choonsik:asdf1234@cluster0.tpprxr9.mongodb.ne
     })
   })
 
+  //============
   // 로그인 기능
+  //============
   app.get('/sign-in', function (req, res) {
     res.render('login.ejs');
   })
@@ -115,6 +117,7 @@ passport.use(new localStrategy({
   session: true, // 로그인 정보를 세션에 저장할 것인지
   passReqToCallback: false, // id,pw 외 다른 정보도 검사하고 싶다면 true
 },
+
   // 2. 검사 단계
   // 사용자의 정보 검증 단계_중요
   function (id, pw, done) {
@@ -124,7 +127,7 @@ passport.use(new localStrategy({
       // 에러 처리
       if (err) return done(err)
       // 결과에 입력 id와 일치하는 것이 없다
-      if (!result) return done(null, false, { message: '존재하지않는 아이디요' })
+      if (!result) return done(null, false, { message: '존재하지 않는 아이디요' })
       // DB에 일치하는 데이터가 있다면 pw 확인
       // 비번은 암호화 해서 검사해야 한다.
       if (pw == result.pw) {
