@@ -376,4 +376,119 @@ passport.deserializeUser(function (id, done) {
 정말 오래 걸렸다. 처음엔 Cookie를 참조에서 값의 유무에 따라 UI state를 변경할까 했는데  
 Cookie는 따로 공부를 해야할 거 같았다. 한 2시간 붙들고 있었는데 도무지 이해가 안 됐기 때문이다.  
 결국은 DB에 state 관리를 위한 컬렉션도 새로 만들어서 로그인 상태가 변할 때마다 그 값을 참조하여  
-State를 변경하도록 하였다!!!!
+State를 변경하도록 하였다!!!!  
+<br/>
+
+# **6일차**
+
+## **기능 추가**
+
+- 할 일 목록에서 검색 기능 추가  
+  <br/>
+
+# **학습 내용**
+
+- html에서 ajax를 통해 get 요청을 할 때 `query String`을 이용한 요청
+- 서버에서 `query String`을 꺼내는 방법
+
+  <br/>
+
+### **query string**
+
+- 데이터를 담아 서버에게 요청 시 공개되지 않고 몰래 전달되는 정보  
+  <br/>
+
+### **query string 형태**
+
+- https://naver.com/search`?데이터이름=데이터값`
+
+> 예시)  
+> https://github.com/search`?q=repo%3ANewbie-Alert%2FserverTutorial%20solar&type=code`
+
+<br/>
+
+### **예시) `/search` 로 get 요청을 할 때**
+
+```javascript
+$("#search").click(() => {
+  // input에 입력된 값
+  let data = $("#search-input").val();
+  // url을 바꿔주는 것__get요청과 같다
+  window.location.replace(`/search?value=${data}`);
+});
+```
+
+### **예시) 서버에서 `/search` 로 get 요청을 받을 때**
+
+`req.query.value`가 query string의 값을 꺼내는 코드
+
+```javascript
+app.get("/search", function (req, res) {
+  db.collection("post")
+    .find({ title: req.query.value })
+    .toArray(function (err, result) {
+      res.render("search.ejs", { data: result });
+    });
+});
+```
+
+<br/>
+
+## **개선이 필요한 부분**
+
+- 검색을 할 때 검색어가 포함된 모든 데이터를 가져오면 좋겠다.  
+  <br/>
+
+## **해결 방안**
+
+### **1. 가장 간단한 정규식 (문자를 검사하는 식)**
+
+예). `find()`안의 찾을 데이터에 `/요청값/` (요청값이 포함되어 있는 것을 뜻) 을 작성
+
+```javascript
+app.get("search", function (req, res) {
+  db.collection("post")
+    .find({ title: /req.query.value/ })
+    .toArray(function (err, result) {
+      res.render("search.ejs", { data: result });
+    });
+});
+```
+
+## 문제점
+
+**게시물이 많아지면 데이터를 찾는 시간이 오래 걸림**  
+ 특히 `find()`를 사용하여 데이터를 찾을 때 컴퓨터는 데이터를 찾을 때  
+ 하나하나 다 검사하여 찾기 때문에 데이터가 많을 수록 처리 시간이 아주 오래 걸린다.  
+ <br/>
+
+## 해결 방안
+
+- 숫자/문자 데이터를 **오름차순/내림차순으로 정렬한 데이터**에 **`Binary Search`** 를 적용하여 데이터 검색  
+  <br/>
+  ## **Binary Search**
+- 순서대로 정렬된 데이터들을 반으로 쪼개가며 데이터를 찾는 것
+- 대부분의 DB에는 index를 생성할 수 있다(정렬 기능)
+- mongo db에서는 create index를 눌러 아래와 같이 입력하면 index가 생성된다
+
+```json
+{
+  "_id": 1 / -1 // 숫자순으로 정렬 시
+       : "text" // 문자순으로 정렬 시
+}
+```
+
+  <br/>
+- mongo db의 문자 자료는 index 생성 시 한 번에 만들어야 한다.  
+  <br/>  
+  <br/>
+예시) 데이터가 {이름:'문자', 내용:'문자'} 이렇게 문자가 있다면
+
+```json
+{
+  "이름": "text",
+  "내용": "text"
+}
+```
+
+위와 같이 한 번에 설정해서 생성해줘야 한다.

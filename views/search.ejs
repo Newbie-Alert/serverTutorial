@@ -22,7 +22,7 @@
       </button>
     </div>
     <div class="container">
-      <% posts.map((el,i) => { %>
+      <% data.map((el,i) => { %>
       <div class="list_card">
         <a href="/detail/<%= el._id %>"><h3>할 일: <%= el.title %></h3></a>
         <h4>날짜: <%= el.date %></h4>

@@ -6,6 +6,7 @@ const passport = require('passport');
 const localStrategy = require('passport-local').Strategy;
 const session = require('express-session');
 const { render } = require('ejs');
+const { send } = require('process');
 
 // 세션 방식 로그인 기능_미들웨어
 app.use(session({ secret: '암호', resave: true, saveUninitialized: false }));
@@ -108,6 +109,19 @@ MongoClient.connect('mongodb+srv://choonsik:asdf1234@cluster0.tpprxr9.mongodb.ne
   app.post('/login', passport.authenticate('local', { failureRedirect: '/fail' }), function (req, res) {
     res.redirect('/')
   })
+
+  // query string 꺼내기
+  app.get('search', function (req, res) {
+    db.collection('post').find({ title: req.query.value }).toArray(function (err, result) {
+      res.render('search.ejs', { data: result })
+    })
+  })
+
+
+
+
+
+
 })
 
 // 1. localstrategy 방식의 검사 - 이것이 완료되면 session에 정보 생성
