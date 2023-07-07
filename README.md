@@ -403,9 +403,18 @@ State를 변경하도록 하였다!!!!
 - https://naver.com/search`?데이터이름=데이터값`
 
 > 예시)  
-> https://github.com/search`?q=repo%3ANewbie-Alert%2FserverTutorial%20solar&type=code`
+> https://github.com/search`?q=repo%3ANewbie-Alert%2FserverTutorial%20solar&type=code` > <br/>
 
-<br/>
+### **query string 생성 함수**
+
+- https://naver.com/search`?데이터이름=데이터값` 에서  
+   `데이터 값`에 해당하는 부분은 아래와 같이 만들 수 있다.
+
+1. let data= {이름:'값', 이름2: '값2'}  
+   **`$.param(data)`** -> **query string 생성**
+2. `$(폼태그 셀렉터).serialize()` 로 생성 가능  
+   폼태그 안의 모든 인풋들을 query string으로 나열해줌.  
+   바닐라 자바스크립트도 가능하나 호환성 때문에 주로 jquery로 사용.
 
 ### **예시) `/search` 로 get 요청을 할 때**
 
@@ -492,3 +501,84 @@ app.get("search", function (req, res) {
 ```
 
 위와 같이 한 번에 설정해서 생성해줘야 한다.
+<br/>
+
+## **text index의 장점과 단점**
+
+```javascript
+// 일반적인 데이터 찾기
+app.get("search", function (req, res) {
+  db.collection("post")
+    .find({ title: req.query.value }) // find는 모든 데이터를 검색
+    .toArray(function (err, result) {
+      res.render("search.ejs", { data: result });
+    });
+});
+
+// DB에 생성해놓은 search index 활용한 데이터 찾기
+app.get("search", function (req, res) {
+  db.collection("post")
+    .find({ $text: { $search: req.query.value } }) // 특정 검색을 요청 or검색이 자동적으로 적용
+    .toArray(function (err, result) {
+      res.render("search.ejs", { data: result });
+    });
+});
+```
+
+### **mongoDB text index 장점**
+
+1. 빠른 검색
+2. or검색 가능 ('산책 식사' 검색 시 둘 중 하나만 포함해도 찾아줌)
+3. -제외 가능 ('산책-식사' 검색 시 식사를 포함하지 않은 결과를 찾아줌)
+4. 정확히 일치하는 것만 ("산책 식사"를 검색 시 산책, 식사를 정확하게 포함하는 자료만 찾아줌)
+
+### **mongoDB text index 단점**
+
+1. 한글 친화적이지 않음
+2. 띄어쓰기 기준으로 단어를 저장하기 때문에 조사가 많이 붙는 한국어는 자료를 잘 못 찾는 경우가 있다.
+
+## **단점 해결방안**
+
+1. text index 사용하지 않고 검색할 문서의 양 제한두기  
+   예). 날짜 기준, 랭킹순 등으로 검색 범위를 지정해주는 것
+   데이터 생성 시 `new Date()`를 활용하여 날짜 생성
+
+2. text index 만들 때 커스텀으로 만들기(알고리즘을 활용)  
+   예) ngram같이 글자 두 개 단위로 indexing을 하도록 설정
+3. **`search index`** 생성  
+   <br/>
+
+## **search index**
+
+## **mongo DB의 search index 생성**
+
+- index analyzer: lucene.korean으로 설정  
+  lucene.korean 사용 시 `을, 를 같은 것을 덜어내고` 검색해줌
+
+## **mongo DB의 search index 생성 후 사용법**
+
+```javascript
+app.get("search", function (req, res) {
+  let 검색조건 = [{
+      $search: {
+        index: `search index의 이름`,
+        text: { // 요청 부분
+          query: req.query.value, // 검색 input에서 온 데이터
+          path: '제목'  // 제목, 날짜 둘다 찾고 싶으면 ['제목', '날짜']
+        }
+      }
+    },
+    { $sort: {_id: 1}},// 검색 조건2_정렬
+    { $limit: 10 }, // 검색 조건3_top10
+    // 원하는 것만 보여주고 싶을 때(1은 true, 0은 false)
+    // searchScore는 자동 생성 (검색이 얼마나 됐는지 기록)
+    { $project: {제목: 1, _id:0, score: { $meta: 'searchScore' }} }
+    ]
+
+  db.collection("post")
+    .aggregate([{검색 조건1},{검색 조건2},{검색 조건3}]) // data를 꺼내는 pipeline 생성
+    .toArray(function (err, result) {
+      res.render("search.ejs", { data: result });
+    });
+});
+```
