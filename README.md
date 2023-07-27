@@ -1,4 +1,24 @@
-## Server Tutorial
+# 서버 학습(node.js, Mongo DB, express)
+### todolist 제작을 통해 서버와 통신하는 것과 서버, DB에 대해 학습
+
+## STACK 🧩
+- Mongo DB
+- Express
+- html / css
+- ejs
+- Node.js
+
+## 학습 내용 🗒️
+- Session 방식 로그인 학습
+- GET, POST, PUT, DELETE 등의 요청 학습
+- 서버로 요청이 오는 데이터를 DB와 연동하여 가공하여 프론트로 보내주는 것 학습
+- 게시판 기능 구현 학습
+- search Index를 통한 검색 기능 학습
+
+## 현재 문제점 🔨🛠️
+- 모든 기능을 다 담은 포트폴리오를 제작하지 않음.
+
+## 일별 활동기록 🗓️
 
 # **1일 차**
 
